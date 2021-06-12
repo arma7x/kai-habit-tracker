@@ -93,7 +93,7 @@ window.addEventListener("load", function() {
                   $router.showToast(`Added ${_habit.name}`);
                   state.setState(DATABASE, UPDATED);
                   $router.pop();
-                })
+                });
               }
             } catch (e) {
               console.log(e.toString());
@@ -137,9 +137,9 @@ window.addEventListener("load", function() {
   }
 
   const home = new Kai({
-    name: '_CHILD_ 1',
+    name: 'home',
     data: {
-      title: '_CHILD_ 1',
+      title: 'home',
       habits: [],
       isEmpty: true,
     },
@@ -160,6 +160,9 @@ window.addEventListener("load", function() {
         for (var h in data) {
           _habits.push(data[h]);
         }
+        if (this.verticalNavIndex > (_habits.length - 1)) {
+          this.verticalNavIndex -= 1;
+        }
         this.setData({
           isEmpty: _habits.length === 0,
           habits: _habits
@@ -170,10 +173,9 @@ window.addEventListener("load", function() {
         console.log(val);
       },
       renderLCR: function() {
+        if (this.$router.stack[this.$router.stack.length - 1].name !== 'home')
+          return
         if (this.data.habits.length > 0) {
-          if (this.verticalNavIndex > (this.data.habits.length - 1)) {
-            this.verticalNavIndex -= 1;
-          }
           this.$router.setSoftKeyText('Menu', 'SELECT', 'Action');
         } else {
           this.$router.setSoftKeyText('Menu', '', '');
@@ -192,15 +194,56 @@ window.addEventListener("load", function() {
           if (selected.text === 'Track new habit') {
             habitEditor(this.$router);
           }
-        }, undefined, 0);
+        }, () => {
+          setTimeout(() => {
+            this.methods.renderLCR();
+          }, 100);
+        }, 0);
       },
       center: function() {
-        const listNav = document.querySelectorAll(this.verticalNavClass);
-        if (this.verticalNavIndex > -1) {
-          listNav[this.verticalNavIndex].click();
+        const habit = this.data.habits[this.verticalNavIndex];
+        if (habit) {
+          console.log(habit);
         }
       },
-      right: function() {}
+      right: function() {
+        const habit = this.data.habits[this.verticalNavIndex];
+        if (habit) {
+          const menus = [
+            { "text": "Delete" },
+            { "text": "Update" },
+            { "text": "Exit" },
+          ];
+          this.$router.showOptionMenu('Action', menus, 'Select', (selected) => {
+            if (selected.text === 'Delete') {
+              this.$router.showDialog('Delete', `Are you sure to remove ${habit.name} ?`, null, 'Yes', () => {
+                localforage.getItem(DATABASE)
+                .then((DB) => {
+                  if (DB == null) {
+                    DB = {};
+                  }
+                  delete DB[habit.id];
+                  return localforage.setItem(DATABASE, DB);
+                })
+                .then((UPDATED) => {
+                  this.$state.setState(DATABASE, UPDATED);
+                  this.$router.showToast(`Deleted ${habit.name}`);
+                });
+              }, 'No', () => {}, ' ', null, () => {
+                setTimeout(() => {
+                  this.methods.renderLCR();
+                }, 100);
+              });
+            } else if (selected.text === 'Update') {
+              habitEditor(this.$router, habit);
+            }
+          }, () => {
+            setTimeout(() => {
+              this.methods.renderLCR();
+            }, 100);
+          }, 0);
+        }
+      }
     },
     dPadNavListener: {
       arrowUp: function() {
@@ -208,6 +251,7 @@ window.addEventListener("load", function() {
           return
         }
         this.navigateListNav(-1);
+        this.methods.renderLCR();
       },
       arrowRight: function() {
         // this.navigateTabNav(-1);
@@ -217,6 +261,7 @@ window.addEventListener("load", function() {
           return
         }
         this.navigateListNav(1);
+        this.methods.renderLCR();
       },
       arrowLeft: function() {
         // this.navigateTabNav(1);
