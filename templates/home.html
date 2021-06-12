@@ -1,0 +1,31 @@
+<div class="kui-flex-wrap">
+  <style>
+  @media only screen and (orientation : portrait) {
+    .img-holder-hp {
+      margin-left: -30px;
+      height: 160px;
+      width: 160px;
+    }
+  }
+  @media screen and (orientation: landscape) {
+    .img-holder-hp {
+      margin-left: -30px;
+      height: 80px;
+      width: 80px;
+    }
+  }
+  </style>
+  {{#isEmpty}}
+    <div style="text-align:center;white-space:pre-wrap!important;word-break:break-word!important;font-weight:bold;">
+      <img class="img-holder-hp" src="/img/thinking.png"/>
+      <div>Menu > Track new habit</div>
+    </div>
+  {{/isEmpty}}
+  {{^isEmpty}}
+    <ul class="kui-list kai-container">
+      {{#habits}}
+        <li class="homeNav">{{ name }}</li>
+      {{/habits}}
+    </ul>
+  {{/isEmpty}}
+</div>
