@@ -343,6 +343,10 @@ window.addEventListener("load", function() {
         this.$router.showOptionMenu('Menu', menus, 'Select', (selected) => {
           if (selected.text === 'Track my habit') {
             habitEditor(this.$router);
+          } else if (selected.text === 'Help & Support') {
+            
+          } else if (selected.text === 'Exit') {
+            window.close();
           }
         }, () => {
           setTimeout(() => {
