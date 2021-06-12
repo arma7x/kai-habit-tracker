@@ -56,6 +56,7 @@ window.addEventListener("load", function() {
           type: habit ? (habit.type ? 'Positive' : 'Negative') : 'Positive',
           start: date.toLocaleDateString(),
           target: habit ? habit.target : '',
+          startVisible: habit ? false : true,
         },
         verticalNavClass: '.editorHabitNav',
         templateUrl: document.location.origin + '/templates/editorHabit.html',
