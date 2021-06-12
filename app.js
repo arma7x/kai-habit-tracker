@@ -18,16 +18,17 @@ window.addEventListener("load", function() {
 
 
   const habitEditor = function($router, habit = null) {
-    var date = new Date();
+    console.log(habit);
+    var date = habit ? new Date(habit.start) : new Date();
 
     $router.push(
       new Kai({
         name: 'editorHabit',
         data: {
-          name: '',
-          type: 'Positive',
+          name: habit ? habit.name : '',
+          type: habit ? (habit.type ? 'Positive' : 'Negative') : 'Positive',
           start: date.toLocaleDateString(),
-          target: '',
+          target: habit ? habit.target : '',
         },
         verticalNavClass: '.editorHabitNav',
         templateUrl: document.location.origin + '/templates/editorHabit.html',
@@ -48,7 +49,7 @@ window.addEventListener("load", function() {
             this.$router.showSingleSelector('Type', menu, 'Select', (selected) => {
               this.setData({
                 name: document.getElementById('name').value,
-                target: document.getElementById('name').target,
+                target: document.getElementById('target').value,
                 type: selected.text
               });
             }, 'Cancel', null, undefined, idx);
@@ -59,7 +60,7 @@ window.addEventListener("load", function() {
               date = dt;
               this.setData({
                 name: document.getElementById('name').value,
-                target: document.getElementById('name').target,
+                target: document.getElementById('target').value,
                 start: date.toLocaleDateString()
               });
             }, undefined);
@@ -67,11 +68,11 @@ window.addEventListener("load", function() {
           submit: function() {
             try {
               var _habit = {
-                id: new Date().getTime(),
+                id: habit ? habit.id : new Date().getTime(),
                 name: this.data.name.trim(),
                 type: this.data.type === `Positive` ? true : false,
                 start: date.getTime(),
-                timeline: [],
+                timeline: habit ? habit.timeline : [],
                 target: JSON.parse(this.data.target) || 0
               }
               console.log(_habit.target, this.data.target);
@@ -90,7 +91,7 @@ window.addEventListener("load", function() {
                   return localforage.setItem(DATABASE, DB);
                 })
                 .then((UPDATED) => {
-                  $router.showToast(`Added ${_habit.name}`);
+                  $router.showToast(`${habit ? 'Updated' : 'Added'} ${_habit.name}`);
                   state.setState(DATABASE, UPDATED);
                   $router.pop();
                 });
