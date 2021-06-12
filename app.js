@@ -1,3 +1,32 @@
+const DAY = 86400000;
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+function seed(time) {
+  const now = new Date().getTime();
+  if (now - time <= DAY) {
+    return [];
+  }
+  const timeline = [];
+  var days = Math.floor((now - time) / DAY);
+  while (days > 0) {
+    var r = getRandomInt(1, days);
+    if (r > days) {
+      r = days;
+      days = 0;
+    } else {
+      days -= r;
+    }
+    time += (r * DAY);
+    timeline.push(time);
+  }
+  return timeline;
+}
+
 window.addEventListener("load", function() {
 
   const DATABASE = 'HABITS';
@@ -16,9 +45,7 @@ window.addEventListener("load", function() {
     state.setState(DATABASE, DB);
   });
 
-
   const habitEditor = function($router, habit = null) {
-    console.log(habit);
     var date = habit ? new Date(habit.start) : new Date();
 
     $router.push(
@@ -72,11 +99,9 @@ window.addEventListener("load", function() {
                 name: this.data.name.trim(),
                 type: this.data.type === `Positive` ? true : false,
                 start: date.getTime(),
-                timeline: habit ? habit.timeline : [],
+                timeline: habit ? habit.timeline : [], // seed(date.getTime())
                 target: JSON.parse(this.data.target) || 0
               }
-              console.log(_habit.target, this.data.target);
-              console.log(_habit);
               if (_habit.name.length === 0 ) {
                 $router.showToast('Name is required');
               } else if (_habit.target === 0 ) {
@@ -137,6 +162,129 @@ window.addEventListener("load", function() {
     );
   }
 
+  const analyzeHabit = function(habit) {
+    const LENGTH = habit.timeline.length;
+    var t1 = 0, t2 = 0, progress = 0;
+    var t1_str = 0, t2_str = 0;
+      if (LENGTH === 0) {
+        const s = new Date();
+        s.setHours(0,0,0,0);
+        const e = new Date(habit.start);
+        e.setHours(0,0,0,0);
+        const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+        t1 = habit.type ? 1 : t;
+        t2 = habit.type ? 1 : t1;
+      } else if (LENGTH === 1) {
+        const s = new Date(habit.timeline[0]);
+        s.setHours(0,0,0,0);
+        const e = new Date(habit.start);
+        e.setHours(0,0,0,0);
+        const tx = Math.floor((s.getTime() - e.getTime()) / DAY);
+        t1 = tx;
+        const start = new Date();
+        start.setHours(0,0,0,0);
+        const ty = Math.floor((start.getTime() - s.getTime()) / DAY);
+        t2 = ty;
+      } else {
+        for (var x=1;x<LENGTH;x++) {
+          const s = new Date(habit.timeline[x]);
+          s.setHours(0,0,0,0);
+          const e = new Date(habit.timeline[x - 1]);
+          e.setHours(0,0,0,0);
+          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+          if (t >= t1) {
+            t1 = t;
+          }
+        }
+        const l = LENGTH - 1;
+        const s = new Date();
+        s.setHours(0,0,0,0);
+        const e = new Date(habit.timeline[l]);
+        e.setHours(0,0,0,0);
+        t2 = Math.floor((s.getTime() - e.getTime()) / DAY);
+      }
+    if (habit.type) {
+      t1_str = `Longest Idle Day ${t1}`;
+      t2_str = `Current Idle Day ${t2}`;
+      if (t2 > 0) {
+        progress = 0 / habit.target;
+      } else {
+        var i = 1;
+        for(var x=(LENGTH-1);x>0;x--) {
+          console.log(t1, t2);
+          const s = new Date(habit.timeline[x]);
+          s.setHours(0,0,0,0);
+          const e = new Date(habit.timeline[x - 1]);
+          e.setHours(0,0,0,0);
+          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+          if (t === 0) {
+            i += 1;
+          } else {
+            break;
+          }
+        }
+        progress = i / habit.target;
+      }
+    } else {
+      t1_str = `Longest Restraint Day ${t1}`;
+      t2_str = `Current Restraint Day ${t2}`;
+      progress = t2 / habit.target;
+    }
+    return {
+      '_1': ((habit.type ? 'Check-In' : 'Relapse') + ' Counter: ' + LENGTH.toString()),
+      '_2': `Progress ${progress * 100}%`,
+      '_3': t1_str,
+      '_4': t2_str,
+    }
+  }
+
+  const commitRelapseOrCheckIn = function(id) {
+    return new Promise((resolve, reject) => {
+      localforage.getItem(DATABASE)
+      .then((DB) => {
+        if (DB == null) {
+          DB = {};
+        }
+        if (DB[id] == null) {
+          return Promise.reject(`${id} not exist`);
+        } else {
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          if (DB[id].timeline.length === 0) {
+            DB[id].timeline.push(today.getTime());
+            return localforage.setItem(DATABASE, DB);
+          } else {
+            const last = new Date(DB[id].timeline[DB[id].timeline.length - 1]);
+            last.setHours(0,0,0,0);
+            const t = Math.floor((today.getTime() - last.getTime()) / DAY);
+            if (t === 0) {
+              return Promise.reject(`Already Relapsed or Check-In`);
+            } else {
+              DB[id].timeline.push(today.getTime());
+              return localforage.setItem(DATABASE, DB);
+            }
+          }
+        }
+        return Promise.reject(`Unknown Error`);
+      })
+      .then((UPDATED) => {
+        state.setState(DATABASE, UPDATED);
+        resolve(UPDATED[id]);
+      })
+      .catch((e) => {
+        reject(e);
+      })
+    });
+  }
+
+  const viewReport = function($router, habit) {
+    console.log('------------------------------------------------------');
+    console.log('Name:', habit.name);
+    console.log('Start', new Date(habit.start).toDateString());
+    console.log('Target Days', habit.target);
+    console.log(analyzeHabit(habit));
+  }
+
   const home = new Kai({
     name: 'home',
     data: {
@@ -187,12 +335,12 @@ window.addEventListener("load", function() {
     softKeyListener: {
       left: function() {
         const menus = [
-          { "text": "Track new habit" },
+          { "text": "Track my habit" },
           { "text": "Help & Support" },
           { "text": "Exit" },
         ];
         this.$router.showOptionMenu('Menu', menus, 'Select', (selected) => {
-          if (selected.text === 'Track new habit') {
+          if (selected.text === 'Track my habit') {
             habitEditor(this.$router);
           }
         }, () => {
@@ -204,13 +352,14 @@ window.addEventListener("load", function() {
       center: function() {
         const habit = this.data.habits[this.verticalNavIndex];
         if (habit) {
-          console.log(habit);
+          viewReport(this.$router, habit);
         }
       },
       right: function() {
         const habit = this.data.habits[this.verticalNavIndex];
         if (habit) {
           const menus = [
+            { "text": (habit.type ? 'Check-In' : 'Relapse') },
             { "text": "Delete" },
             { "text": "Update" },
             { "text": "Exit" },
@@ -237,6 +386,14 @@ window.addEventListener("load", function() {
               });
             } else if (selected.text === 'Update') {
               habitEditor(this.$router, habit);
+            } else if (selected.text === 'Check-In' || selected.text === 'Relapse') {
+              commitRelapseOrCheckIn(habit.id)
+              .then((h) => {
+                console.log(h);
+              })
+              .catch((e) => {
+                console.log(e);
+              });
             }
           }, () => {
             setTimeout(() => {

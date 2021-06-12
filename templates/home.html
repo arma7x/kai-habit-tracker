@@ -18,13 +18,18 @@
   {{#isEmpty}}
     <div style="text-align:center;white-space:pre-wrap!important;word-break:break-word!important;font-weight:bold;">
       <img class="img-holder-hp" src="/img/thinking.png"/>
-      <div>Menu > Track new habit</div>
+      <div>Menu > Track my habit</div>
     </div>
   {{/isEmpty}}
   {{^isEmpty}}
     <ul class="kui-list kai-container">
       {{#habits}}
-        <li class="homeNav">{{ name }}</li>
+        <li class="homeNav" style="height:58px;border-bottom: 1px solid #320374;">
+          <div>
+            <div>{{ name }}</div>
+            <small>({{#type}}Positive{{/type}}{{^type}}Negative{{/type}})</small>
+          </div>
+        </li>
       {{/habits}}
     </ul>
   {{/isEmpty}}
