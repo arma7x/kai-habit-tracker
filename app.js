@@ -69,7 +69,7 @@ window.addEventListener("load", function() {
             last.setHours(0,0,0,0);
             const t = Math.floor((today.getTime() - last.getTime()) / DAY);
             if (t === 0) {
-              return Promise.reject(`Already Relapsed/Check-In`);
+              return Promise.reject(`Already ${DB[id].type ? 'Check-In' : 'Relapsed'}`);
             } else {
               DB[id].timeline.push(today.getTime());
               return localforage.setItem(DATABASE, DB);
@@ -135,15 +135,15 @@ window.addEventListener("load", function() {
       if (t2 > 0) {
         progress = 0 / habit.target;
       } else {
-        var i = 1;
+        var i = 0;
         const timeline = [habit.start, ...habit.timeline];
-        for(var x=(LENGTH-1);x>0;x--) {
+        for(var x=(timeline.length-1);x>0;x--) {
           const s = new Date(timeline[x]);
           s.setHours(0,0,0,0);
           const e = new Date(timeline[x - 1]);
           e.setHours(0,0,0,0);
           const t = Math.floor((s.getTime() - e.getTime()) / DAY);
-          if (t === 0) {
+          if (t <= 1) {
             i += 1;
           } else {
             break;
