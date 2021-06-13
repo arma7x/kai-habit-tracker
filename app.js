@@ -45,6 +45,144 @@ window.addEventListener("load", function() {
     state.setState(DATABASE, DB);
   });
 
+  const commitRelapseOrCheckIn = function(id) {
+    return new Promise((resolve, reject) => {
+      localforage.getItem(DATABASE)
+      .then((DB) => {
+        if (DB == null) {
+          DB = {};
+        }
+        if (DB[id] == null) {
+          return Promise.reject(`${id} not exist`);
+        } else {
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          if (DB[id].timeline.length === 0) {
+            DB[id].timeline.push(today.getTime());
+            return localforage.setItem(DATABASE, DB);
+          } else {
+            const last = new Date(DB[id].timeline[DB[id].timeline.length - 1]);
+            last.setHours(0,0,0,0);
+            const t = Math.floor((today.getTime() - last.getTime()) / DAY);
+            if (t === 0) {
+              return Promise.reject(`Already Relapsed or Check-In`);
+            } else {
+              DB[id].timeline.push(today.getTime());
+              return localforage.setItem(DATABASE, DB);
+            }
+          }
+        }
+        return Promise.reject(`Unknown Error`);
+      })
+      .then((UPDATED) => {
+        state.setState(DATABASE, UPDATED);
+        resolve(UPDATED[id]);
+      })
+      .catch((e) => {
+        reject(e);
+      })
+    });
+  }
+
+  const analyzeHabit = function(habit) {
+    const LENGTH = habit.timeline.length;
+    var t1 = 0, t2 = 0, progress = 0;
+    var t1_str = 0, t2_str = 0;
+      if (LENGTH === 0) {
+        const s = new Date();
+        s.setHours(0,0,0,0);
+        const e = new Date(habit.start);
+        e.setHours(0,0,0,0);
+        const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+        t1 = habit.type ? 1 : t;
+        t2 = habit.type ? 1 : t1;
+      } else if (LENGTH === 1) {
+        const s = new Date(habit.timeline[0]);
+        s.setHours(0,0,0,0);
+        const e = new Date(habit.start);
+        e.setHours(0,0,0,0);
+        const tx = Math.floor((s.getTime() - e.getTime()) / DAY);
+        t1 = tx;
+        const start = new Date();
+        start.setHours(0,0,0,0);
+        const ty = Math.floor((start.getTime() - s.getTime()) / DAY);
+        t2 = ty;
+      } else {
+        for (var x=1;x<LENGTH;x++) {
+          const s = new Date(habit.timeline[x]);
+          s.setHours(0,0,0,0);
+          const e = new Date(habit.timeline[x - 1]);
+          e.setHours(0,0,0,0);
+          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+          if (t >= t1) {
+            t1 = t;
+          }
+        }
+        const l = LENGTH - 1;
+        const s = new Date();
+        s.setHours(0,0,0,0);
+        const e = new Date(habit.timeline[l]);
+        e.setHours(0,0,0,0);
+        t2 = Math.floor((s.getTime() - e.getTime()) / DAY);
+      }
+    if (habit.type) {
+      t1_str = 'Longest Idle Days';
+      t2_str = 'Current Idle Days';
+      if (t2 > 0) {
+        progress = 0 / habit.target;
+      } else {
+        var i = 1;
+        for(var x=(LENGTH-1);x>0;x--) {
+          const s = new Date(habit.timeline[x]);
+          s.setHours(0,0,0,0);
+          const e = new Date(habit.timeline[x - 1]);
+          e.setHours(0,0,0,0);
+          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+          if (t === 0) {
+            i += 1;
+          } else {
+            break;
+          }
+        }
+        progress = i / habit.target;
+      }
+    } else {
+      t1_str = 'Longest Restraint Days';
+      t2_str = 'Current Restraint Days';
+      progress = t2 / habit.target;
+    }
+    return {
+      '_1_label': (habit.type ? 'Check-In' : 'Relapse') + ' Counter',
+      '_1': LENGTH,
+      '_2_label': 'Progress',
+      '_2': (progress * 100),
+      '_3_label': t1_str,
+      '_3': t1,
+      '_4_label': t2_str,
+      '_4': t2,
+    }
+  }
+
+  const helpSupportPage = new Kai({
+    name: 'helpSupportPage',
+    data: {
+      title: 'helpSupportPage'
+    },
+    templateUrl: document.location.origin + '/templates/helpnsupport.html',
+    mounted: function() {
+      this.$router.setHeaderTitle('Help & Support');
+      navigator.spatialNavigationEnabled = false;
+    },
+    unmounted: function() {},
+    methods: {},
+    softKeyText: { left: '', center: '', right: '' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {},
+      right: function() {}
+    }
+  });
+
   const habitEditor = function($router, habit = null) {
     var date = habit ? new Date(habit.start) : new Date();
 
@@ -59,7 +197,7 @@ window.addEventListener("load", function() {
           startVisible: habit ? false : true,
         },
         verticalNavClass: '.editorHabitNav',
-        templateUrl: document.location.origin + '/templates/editorHabit.html',
+        templateUrl: document.location.origin + '/templates/habitEditor.html',
         mounted: function() {
           this.$router.setHeaderTitle('Habit Editor');
         },
@@ -163,127 +301,39 @@ window.addEventListener("load", function() {
     );
   }
 
-  const analyzeHabit = function(habit) {
-    const LENGTH = habit.timeline.length;
-    var t1 = 0, t2 = 0, progress = 0;
-    var t1_str = 0, t2_str = 0;
-      if (LENGTH === 0) {
-        const s = new Date();
-        s.setHours(0,0,0,0);
-        const e = new Date(habit.start);
-        e.setHours(0,0,0,0);
-        const t = Math.floor((s.getTime() - e.getTime()) / DAY);
-        t1 = habit.type ? 1 : t;
-        t2 = habit.type ? 1 : t1;
-      } else if (LENGTH === 1) {
-        const s = new Date(habit.timeline[0]);
-        s.setHours(0,0,0,0);
-        const e = new Date(habit.start);
-        e.setHours(0,0,0,0);
-        const tx = Math.floor((s.getTime() - e.getTime()) / DAY);
-        t1 = tx;
-        const start = new Date();
-        start.setHours(0,0,0,0);
-        const ty = Math.floor((start.getTime() - s.getTime()) / DAY);
-        t2 = ty;
-      } else {
-        for (var x=1;x<LENGTH;x++) {
-          const s = new Date(habit.timeline[x]);
-          s.setHours(0,0,0,0);
-          const e = new Date(habit.timeline[x - 1]);
-          e.setHours(0,0,0,0);
-          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
-          if (t >= t1) {
-            t1 = t;
-          }
+  const viewReport = function($router, _habit) {
+    $router.push(
+      new Kai({
+        name: 'habitReport',
+        data: {
+          habit: _habit,
+          date: new Date(_habit.start).toDateString(),
+          analyzeData: analyzeHabit(_habit),
+        },
+        templateUrl: document.location.origin + '/templates/habitReport.html',
+        mounted: function() {
+          this.$router.setHeaderTitle('Report');
+        },
+        unmounted: function() {},
+        methods: {},
+        softKeyText: { left: '', center: (_habit.type ? 'CHECK-IN' : 'RELAPSE'), right: '' },
+        softKeyListener: {
+          left: function() {},
+          center: function() {
+            this.$router.showDialog('Confirm', `Are you sure to ${(_habit.type ? 'CHECK-IN' : 'RELAPSE')} ?`, null, 'Yes', () => {
+              commitRelapseOrCheckIn(_habit.id)
+              .then((h) => {
+                this.setData({ analyzeData: analyzeHabit(h) });
+              })
+              .catch((e) => {
+                $router.showToast(e.toString());
+              });
+            }, 'No', () => {}, ' ', null, () => {});
+          },
+          right: function() {}
         }
-        const l = LENGTH - 1;
-        const s = new Date();
-        s.setHours(0,0,0,0);
-        const e = new Date(habit.timeline[l]);
-        e.setHours(0,0,0,0);
-        t2 = Math.floor((s.getTime() - e.getTime()) / DAY);
-      }
-    if (habit.type) {
-      t1_str = `Longest Idle Day ${t1}`;
-      t2_str = `Current Idle Day ${t2}`;
-      if (t2 > 0) {
-        progress = 0 / habit.target;
-      } else {
-        var i = 1;
-        for(var x=(LENGTH-1);x>0;x--) {
-          console.log(t1, t2);
-          const s = new Date(habit.timeline[x]);
-          s.setHours(0,0,0,0);
-          const e = new Date(habit.timeline[x - 1]);
-          e.setHours(0,0,0,0);
-          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
-          if (t === 0) {
-            i += 1;
-          } else {
-            break;
-          }
-        }
-        progress = i / habit.target;
-      }
-    } else {
-      t1_str = `Longest Restraint Day ${t1}`;
-      t2_str = `Current Restraint Day ${t2}`;
-      progress = t2 / habit.target;
-    }
-    return {
-      '_1': ((habit.type ? 'Check-In' : 'Relapse') + ' Counter: ' + LENGTH.toString()),
-      '_2': `Progress ${progress * 100}%`,
-      '_3': t1_str,
-      '_4': t2_str,
-    }
-  }
-
-  const commitRelapseOrCheckIn = function(id) {
-    return new Promise((resolve, reject) => {
-      localforage.getItem(DATABASE)
-      .then((DB) => {
-        if (DB == null) {
-          DB = {};
-        }
-        if (DB[id] == null) {
-          return Promise.reject(`${id} not exist`);
-        } else {
-          const today = new Date();
-          today.setHours(0,0,0,0);
-          if (DB[id].timeline.length === 0) {
-            DB[id].timeline.push(today.getTime());
-            return localforage.setItem(DATABASE, DB);
-          } else {
-            const last = new Date(DB[id].timeline[DB[id].timeline.length - 1]);
-            last.setHours(0,0,0,0);
-            const t = Math.floor((today.getTime() - last.getTime()) / DAY);
-            if (t === 0) {
-              return Promise.reject(`Already Relapsed or Check-In`);
-            } else {
-              DB[id].timeline.push(today.getTime());
-              return localforage.setItem(DATABASE, DB);
-            }
-          }
-        }
-        return Promise.reject(`Unknown Error`);
       })
-      .then((UPDATED) => {
-        state.setState(DATABASE, UPDATED);
-        resolve(UPDATED[id]);
-      })
-      .catch((e) => {
-        reject(e);
-      })
-    });
-  }
-
-  const viewReport = function($router, habit) {
-    console.log('------------------------------------------------------');
-    console.log('Name:', habit.name);
-    console.log('Start', new Date(habit.start).toDateString());
-    console.log('Target Days', habit.target);
-    console.log(analyzeHabit(habit));
+    );
   }
 
   const home = new Kai({
@@ -319,9 +369,6 @@ window.addEventListener("load", function() {
         });
         this.methods.renderLCR();
       },
-      selected: function(val) {
-        console.log(val);
-      },
       renderLCR: function() {
         if (this.$router.stack[this.$router.stack.length - 1].name !== 'home')
           return
@@ -344,7 +391,7 @@ window.addEventListener("load", function() {
           if (selected.text === 'Track my habit') {
             habitEditor(this.$router);
           } else if (selected.text === 'Help & Support') {
-            
+            this.$router.push('helpSupportPage');
           } else if (selected.text === 'Exit') {
             window.close();
           }
@@ -364,7 +411,7 @@ window.addEventListener("load", function() {
         const habit = this.data.habits[this.verticalNavIndex];
         if (habit) {
           const menus = [
-            { "text": (habit.type ? 'Check-In' : 'Relapse') },
+            // { "text": (habit.type ? 'Check-In' : 'Relapse') },
             { "text": "Delete" },
             { "text": "Update" },
             { "text": "Exit" },
@@ -439,6 +486,10 @@ window.addEventListener("load", function() {
         name: 'home',
         component: home
       },
+      'helpSupportPage': {
+        name: 'helpSupportPage',
+        component: helpSupportPage
+      },
     }
   });
 
@@ -457,4 +508,42 @@ window.addEventListener("load", function() {
   } catch(e) {
     console.log(e);
   }
+
+  function displayKaiAds() {
+    var display = true;
+    if (window['kaiadstimer'] == null) {
+      window['kaiadstimer'] = new Date();
+    } else {
+      var now = new Date();
+      if ((now - window['kaiadstimer']) < 300000) {
+        display = false;
+      } else {
+        window['kaiadstimer'] = now;
+      }
+    }
+    console.log('Display Ads:', display);
+    if (!display)
+      return;
+    getKaiAd({
+      publisher: 'ac3140f7-08d6-46d9-aa6f-d861720fba66',
+      app: 'habit-tracker',
+      slot: 'kaios',
+      onerror: err => console.error(err),
+      onready: ad => {
+        ad.call('display')
+        setTimeout(() => {
+          document.body.style.position = '';
+        }, 1000);
+      }
+    })
+  }
+
+  displayKaiAds();
+
+  document.addEventListener('visibilitychange', function(ev) {
+    if (document.visibilityState === 'visible') {
+      displayKaiAds();
+    }
+  });
+
 });

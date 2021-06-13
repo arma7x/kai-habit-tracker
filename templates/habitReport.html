@@ -1,0 +1,47 @@
+<div class="kui-flex-wrap">
+  <style>
+    pre {
+      margin: 0;
+      padding: 0;
+    }
+    .mt {
+      margin-top: 8px;
+    }
+    .r-label {
+      font-size: 14px;
+      color: #404040;
+    }
+    .r-title {
+      font-size:16px;
+    }
+  </style>
+  <div class="kai-container" style="padding:5px;">
+    <h3>{{ habit.name }}</h3>
+    <div class="mt">
+      <div class="r-label">Start Date</div>
+      <pre class="r-title">{{ date }}</pre>
+    </div>
+    <div class="kui-row-center mt">
+      <div>
+        <div class="r-label">Target Day</div>
+        <pre class="r-title">{{ habit.target }}</pre>
+      </div>
+      <div>
+        <div class="r-label">{{ analyzeData._2_label}} </div>
+        <pre class="r-title" style="text-align:right;">{{ analyzeData._2 }}%</pre>
+      </div>
+    </div>
+    <div class="kui-row-center mt">
+      <div class="r-label">{{ analyzeData._1_label}}</div>
+      <pre class="r-title">{{ analyzeData._1 }}x</pre>
+    </div>
+    <div class="kui-row-center mt">
+      <div class="r-label">{{ analyzeData._3_label}}</div>
+      <pre class="r-title">{{ analyzeData._3 }}</pre>
+    </div>
+    <div class="kui-row-center mt">
+      <div class="r-label">{{ analyzeData._4_label}}</div>
+      <pre class="r-title">{{ analyzeData._4 }}</pre>
+    </div>
+  </div>
+</div>
