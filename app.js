@@ -117,7 +117,7 @@ window.addEventListener("load", function() {
           s.setHours(0,0,0,0);
           const e = new Date(habit.timeline[x - 1]);
           e.setHours(0,0,0,0);
-          const t = Math.floor((s.getTime() - e.getTime()) / DAY);
+          const t = (Math.floor((s.getTime() - e.getTime()) / DAY)) - 1;
           if (t >= t1) {
             t1 = t;
           }
@@ -136,10 +136,11 @@ window.addEventListener("load", function() {
         progress = 0 / habit.target;
       } else {
         var i = 1;
+        const timeline = [habit.start, ...habit.timeline];
         for(var x=(LENGTH-1);x>0;x--) {
-          const s = new Date(habit.timeline[x]);
+          const s = new Date(timeline[x]);
           s.setHours(0,0,0,0);
-          const e = new Date(habit.timeline[x - 1]);
+          const e = new Date(timeline[x - 1]);
           e.setHours(0,0,0,0);
           const t = Math.floor((s.getTime() - e.getTime()) / DAY);
           if (t === 0) {
@@ -159,7 +160,7 @@ window.addEventListener("load", function() {
       '_1_label': (habit.type ? 'Check-In' : 'Relapse') + ' Counter',
       '_1': LENGTH,
       '_2_label': 'Progress',
-      '_2': (progress * 100),
+      '_2': parseFloat((progress * 100).toFixed(2)),
       '_3_label': t1_str,
       '_3': t1,
       '_4_label': t2_str,
