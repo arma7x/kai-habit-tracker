@@ -418,8 +418,7 @@ window.addEventListener("load", function() {
           const menus = [
             // { "text": (habit.type ? 'Check-In' : 'Relapse') },
             { "text": "Delete" },
-            { "text": "Update" },
-            { "text": "Exit" },
+            { "text": "Update" }
           ];
           this.$router.showOptionMenu('Action', menus, 'Select', (selected) => {
             if (selected.text === 'Delete') {
