@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "Habit Tracker",
-  "description": "JS framework for KaiOS",
+  "description": "Habit Tracker is an app to monitor your daily habits or if you want to stop yourself from bad habits",
   "launch_path": "/index.html",
   "theme": "#873eff",
   "theme_color": "#873eff",
@@ -24,8 +24,8 @@
   "locales": {
     "en-US": {
       "name": "Habit Tracker",
-      "subtitle": "JS framework for KaiOS",
-      "description": "JS framework for KaiOS"
+      "subtitle": "Habit Tracker is an app to monitor your daily habits or if you want to stop yourself from bad habits",
+      "description": "Habit Tracker is an app to monitor your daily habits or if you want to stop yourself from bad habits"
     }
   },
   "default_locale": "en-US"

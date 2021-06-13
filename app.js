@@ -57,7 +57,11 @@ window.addEventListener("load", function() {
         } else {
           const today = new Date();
           today.setHours(0,0,0,0);
-          if (DB[id].timeline.length === 0) {
+          const start_date = new Date(DB[id].start);
+          start_date.setHours(0,0,0,0);
+          if ((start_date.getTime()) > today.getTime()) {
+            return Promise.reject(`Relapsed/Check-In is valid after Start Date`);
+          } else if (DB[id].timeline.length === 0) {
             DB[id].timeline.push(today.getTime());
             return localforage.setItem(DATABASE, DB);
           } else {
@@ -65,7 +69,7 @@ window.addEventListener("load", function() {
             last.setHours(0,0,0,0);
             const t = Math.floor((today.getTime() - last.getTime()) / DAY);
             if (t === 0) {
-              return Promise.reject(`Already Relapsed or Check-In`);
+              return Promise.reject(`Already Relapsed/Check-In`);
             } else {
               DB[id].timeline.push(today.getTime());
               return localforage.setItem(DATABASE, DB);
@@ -324,6 +328,7 @@ window.addEventListener("load", function() {
               commitRelapseOrCheckIn(_habit.id)
               .then((h) => {
                 this.setData({ analyzeData: analyzeHabit(h) });
+                $router.showToast(`${(_habit.type ? 'DONE CHECK-IN' : 'OPSS RELAPSED')}`);
               })
               .catch((e) => {
                 $router.showToast(e.toString());
