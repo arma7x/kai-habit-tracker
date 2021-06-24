@@ -112,15 +112,16 @@ window.addEventListener("load", function() {
         const ty = Math.floor((start.getTime() - s.getTime()) / DAY);
         t2 = ty;
       } else {
-        for (var x=1;x<LENGTH;x++) {
+        for (var x=0;x<LENGTH;x++) {
           const s = new Date(habit.timeline[x]);
           s.setHours(0,0,0,0);
-          const e = new Date(habit.timeline[x - 1]);
+          const e = habit.timeline[x - 1] ? new Date(habit.timeline[x - 1]) : new Date(habit.start);
           e.setHours(0,0,0,0);
-          const t = (Math.floor((s.getTime() - e.getTime()) / DAY)) - 1;
+          const t = (Math.floor((s.getTime() - e.getTime()) / DAY)) - (habit.type ? 1 : 0);
           if (t >= t1) {
             t1 = t;
           }
+          console.log(t, s.toString(), e.toString());
         }
         const l = LENGTH - 1;
         const s = new Date();
