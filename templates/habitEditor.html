@@ -1,29 +1,29 @@
 <div class="kui-flex-wrap">
   <ul class="kui-list kai-container">
-    <li>
+    <li class="kui-divider">
       <input id="name" class="editorHabitNav kui-input" type="text" placeholder="Name" value="{{ name }}"/>
     </li>
-    <li class="editorHabitNav" @click="setType()" style="border-top:1px dashed #320374;">
+    <li class="editorHabitNav kui-divider" @click="setType()">
       <div class="kui-row-center">
         <span>Type</span>
         <span style="color:#000;padding:5px;background-color:#fff;border-radius:2px;">{{ type }}</span>
       </div>
     </li>
     {{#startVisible}}
-    <li class="editorHabitNav" @click="setDate()" style="border-top:1px dashed #320374;">
+    <li class="editorHabitNav kui-divider" @click="setDate()">
       <div class="kui-row-center">
         <span>Start Date</span>
         <span style="color:#000;padding:5px;background-color:#fff;border-radius:2px;">{{ start }}</span>
       </div>
     </li>
     {{/startVisible}}
-    <li style="border-top:1px dashed #320374;">
+    <li class="kui-divider">
       <div class="kui-row-center">
         <span>Target Day</span>
         <input id="target" class="editorHabitNav kui-input" type="tel" style="margin:2%;width:40%;" placeholder="Days" value="{{ target }}"/>
       </div>
     </li>
-    <li class="editorHabitNav" style="border-top:1px dashed #320374;" @click="submit()">
+    <li class="editorHabitNav kui-divider" @click="submit()">
       <div class="kui-row-center" style="justify-content:space-around;">
         <h4>SUBMIT</h4>
       </div>

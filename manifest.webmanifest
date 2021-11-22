@@ -1,0 +1,46 @@
+{
+  "lang": "en-US",
+  "id": "Habit Tracker",
+  "name": "Habit Tracker",
+  "description": "Habit Tracker is an app to track your daily habits or if you want to stop yourself from bad habits",
+  "theme": "#873eff",
+  "theme_color": "#873eff",
+  "background_color": "#873eff",
+  "orientation": "portrait",
+  "start_url": "/index.html",
+  "categories": [
+    "life style",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon56x56.png",
+      "type": "image/png",
+      "sizes": "56x56"
+    },
+    {
+      "src": "/icons/icon112x112.png",
+      "type": "image/png",
+      "sizes": "112x112"
+    }
+  ],
+  "b2g_features": {
+    "version": "3.0.0",
+    "type": "web",
+    "default_locale": "en-US",
+    "developer": {
+      "name": "arma7x",
+      "url": "https://www.kaiostech.com"
+    },
+    "origin": "habit-tracker",
+    "permissions": {},
+    "messages": [],
+    "locales": {
+      "en-US": {
+        "name": "Habit Tracker",
+        "subtitle": "Habit Tracker is an app to track your daily habits or if you want to stop yourself from bad habits",
+        "description": "Habit Tracker is an app to track your daily habits or if you want to stop yourself from bad habits"
+      }
+    }
+  }
+}

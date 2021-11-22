@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.1.0",
   "name": "Habit Tracker",
   "description": "Habit Tracker is an app to track your daily habits or if you want to stop yourself from bad habits",
   "launch_path": "/index.html",
@@ -16,7 +16,7 @@
   },
   "developer": {
     "name": "arma7x",
-    "url": "https://github.com/arma7x"
+    "url": "https://www.kaiostech.com"
   },
   "origin": "app://habit-tracker.arma7x.com",
   "type": "web",
